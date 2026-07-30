@@ -28,7 +28,7 @@
             border: 1px solid #ddd;
             transition: border-width 0.2s ease;
             border-radius: 2px;
-            color: #ccc;
+            color: #333;
         }
         h1 {
             color: #444;
@@ -55,6 +55,7 @@
             padding: 20px;
             background-color: coral;
             color: white;
+            margin-top: 10px;
         }
 
         .closebtn {
@@ -76,24 +77,21 @@
 </head>
 <body>
 <div class="container">
-    <h1>Leave Management System</h1>
-    <form class = "login" method="post">
+    <h1>Leave Requests Management System</h1>
+    <form class="login" th:action="@{/api/login}" method="post">
         <div class="username">
-            <input type="text" id="email" name="email" class="name" placeholder="Username" required>
-
+            <input type="text" id="username" name="username" class="username" placeholder="Email address" required autocomplete="username">
         </div>
         <div class="password">
-            <input type="password" id="password" name="password" class="password" placeholder="Password" required>
-
+            <input type="password" id="password" name="password" class="password" placeholder="Password" required autocomplete="current-password">
         </div>
 
         <button type="submit" value="Sign In">Log In</button>
 
         <div class="alert">
             <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-            Invalid credentials!
+            Invalid credentials! Use your <strong>email address</strong> (not your name) and the correct password.
         </div>
-
     </form>
 </div>
 </body>

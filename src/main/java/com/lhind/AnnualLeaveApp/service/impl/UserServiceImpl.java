@@ -21,9 +21,18 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 
     @Override
     public User save(User user) {
-        String encodedPassword = bCryptPasswordEncoder.encode(user.getPassword());
-        user.setPassword(encodedPassword);
+        String password = user.getPassword();
+        if (password != null && !password.isBlank() && !isBcryptHash(password)) {
+            user.setPassword(bCryptPasswordEncoder.encode(password));
+        }
         return userRepository.save(user);
+    }
+
+    private boolean isBcryptHash(String password) {
+        if (password == null || password.length() < 60) {
+            return false;
+        }
+        return password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$");
     }
 
     @Override
@@ -43,8 +52,22 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException(String.format("Email %s not found", email)));
+        if (email == null || email.isBlank()) {
+            throw new UsernameNotFoundException("Email not provided");
+        }
+        String normalizedEmail = email.trim().toLowerCase();
+        return userRepository.findByEmail(normalizedEmail)
+                .orElseThrow(() -> new UsernameNotFoundException(String.format("Email %s not found", normalizedEmail)));
+    }
+
+    @Override
+    public boolean isEmailTakenByAnotherUser(String email, Integer excludeUserId) {
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+        return userRepository.findByEmail(email.trim().toLowerCase())
+                .filter(user -> excludeUserId == null || !excludeUserId.equals(user.getId()))
+                .isPresent();
     }
 
 }

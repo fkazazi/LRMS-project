@@ -17,7 +17,7 @@ import java.util.*;
 @Getter
 @Setter
 @ToString
-@Table(name = "user")
+@Table(name = "users")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +27,7 @@ public class User implements UserDetails {
     @NotEmpty(message = "Email cannot be empty")
     @Email(message = "please provide an email")
 //    @Pattern(regexp = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
-    @Column(name = "email")
+    @Column(name = "email", unique = true)
     private String email;
 
     @NotEmpty(message = "Password cannot be empty")
@@ -38,6 +38,10 @@ public class User implements UserDetails {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private ApplicationRoles role;
+
+    @Column(name = "department")
+    @Enumerated(EnumType.STRING)
+    private Department department;
 
     @NotEmpty(message = "Please provide first name!")
     @Column(name = "first_name")
@@ -69,6 +73,9 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (role == null) {
+            return Collections.emptyList();
+        }
         SimpleGrantedAuthority authority =
                 new SimpleGrantedAuthority(role.name());
         return Collections.singletonList(authority);

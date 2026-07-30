@@ -9,13 +9,20 @@
         .w3-third img{margin-bottom: -6px; opacity: 0.8; cursor: pointer}
         .w3-third img:hover{opacity: 1}
     </style>
+</head>
 <body class="w3-light-grey w3-content" style="max-width:1600px">
 <nav class="w3-sidebar w3-bar-block w3-white w3-animate-left w3-text-grey w3-collapse w3-top w3-center" style="z-index:3;width:300px;font-weight:bold" id="mySidebar"><br>
     <h3 class="w3-padding-64 w3-center"><b>WELCOME<br>ADMIN</b></h3>
     <a th:href="@{/api/admin/manage-users}" class="w3-bar-item w3-button">VIEW USERS</a>
     <a th:href="@{/api/admin/add-user}" class="w3-bar-item w3-button">ADD USER</a>
     <a th:href="@{/api/change-password}" class="w3-bar-item w3-button">CHANGE PASSWORD</a>
-    <a th:href="@{/api/login}" class="w3-bar-item w3-button">LOG OUT</a>
+    <a th:href="@{/logout}" class="w3-bar-item w3-button">LOG OUT</a>
 </nav>
+<div class="w3-main" style="margin-left:320px; margin-right:50px; margin-top:50px;">
+    <header class="w3-container w3-white w3-padding-32 w3-border">
+        <h1 class="w3-xxlarge">Admin dashboard</h1>
+        <p>Use the menu on the left to manage users or change your password.</p>
+    </header>
+</div>
 </body>
 </html>

@@ -16,4 +16,6 @@ public interface UserService {
     User getById(Integer id);
 
     UserDetails loadUserByUsername(String email);
+
+    boolean isEmailTakenByAnotherUser(String email, Integer excludeUserId);
 }

@@ -12,6 +12,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.Validator;
 
 @AllArgsConstructor
 @Controller
@@ -19,6 +20,7 @@ import javax.validation.Valid;
 public class UserController {
 
     private final UserService userService;
+    private final Validator validator;
 
     @RequestMapping(path = "/admin/home")
     public String adminhomeView(){
@@ -28,11 +30,6 @@ public class UserController {
     @RequestMapping(path = "/user/home")
     public String userHomeView(){
         return "user/userHome";
-    }
-
-    @RequestMapping(path = "/supervisor/home")
-    public String supervisorHomeView(){
-        return "supervisor/supervisorHome";
     }
 
     @GetMapping("/admin/manage-users")
@@ -65,16 +62,15 @@ public class UserController {
         return "admin/adminHome";
     }
     @GetMapping("admin/manage-users/delete/{id}")
-    public String manageUsers(@PathVariable("id") Integer id){
-
-            userService.delete(id);
-
-        return "admin/manageUsers";
+    public String deleteUser(@PathVariable("id") Integer id){
+        userService.delete(id);
+        return "redirect:/api/admin/manage-users";
     }
 
     @GetMapping("admin/manage-users/edit/{id}")
     public String editUserForm (@PathVariable("id") Integer id, Model model){
         User user = userService.getById(id);
+        user.setPassword(null);
         model.addAttribute("user", user);
         return "admin/editUserForm";
     }
@@ -89,6 +85,11 @@ public class UserController {
         return "login-error";
     }
 
+    @GetMapping("/logged-out")
+    public String loggedOut(){
+        return "logout";
+    }
+
     @RequestMapping(path = "/access-denied")
     public String accessDenied(){
         return "accessDenied";
@@ -101,12 +102,62 @@ public class UserController {
         return "admin/newUserForm";
     }
     @PostMapping("/admin/save-user")
-    public String saveUser(@Valid @ModelAttribute("user") User user, BindingResult bindingResult){
+    public String saveUser(@ModelAttribute("user") User user,
+                           BindingResult bindingResult,
+                           @RequestParam(value = "newPassword", required = false) String newPassword){
+         boolean isEdit = user.getId() != null;
+         User existing = null;
+         if (isEdit) {
+             existing = userService.getById(user.getId());
+             if (newPassword != null && !newPassword.isBlank()) {
+                 if (newPassword.length() < 8) {
+                     bindingResult.rejectValue("newPassword", "password.length",
+                             "Password must be at least 8 characters long.");
+                 } else {
+                     user.setPassword(newPassword);
+                 }
+             } else {
+                 user.setPassword(existing.getPassword());
+             }
+         }
+
+         if (user.getRole() == null) {
+             bindingResult.rejectValue("role", "role.required", "Please select a role.");
+         }
+         if (requiresDepartment(user.getRole()) && user.getDepartment() == null) {
+             bindingResult.rejectValue("department", "department.required",
+                     "Department is required for users and supervisors.");
+         }
+         if (user.getEmail() != null && userService.isEmailTakenByAnotherUser(user.getEmail().trim(), user.getId())) {
+             bindingResult.rejectValue("email", "email.duplicate",
+                     "An account with this email already exists.");
+         }
+
+         if (!bindingResult.hasErrors()) {
+             validator.validate(user).forEach(violation ->
+                     bindingResult.rejectValue(
+                             violation.getPropertyPath().toString(),
+                             violation.getMessage()));
+         }
+
          if (bindingResult.hasErrors()){
-            return "admin/saveUserError";
+            if (isEdit) {
+                user.setPassword(null);
+            }
+            return isEdit ? "admin/editUserForm" : "admin/newUserForm";
         }
+         if (user.getRole().equals(ApplicationRoles.ADMIN)) {
+             user.setDepartment(null);
+         }
+         if (user.getEmail() != null) {
+             user.setEmail(user.getEmail().trim().toLowerCase());
+         }
          userService.save(user);
         return "admin/saveUserSuccess";
+    }
+
+    private boolean requiresDepartment(ApplicationRoles role) {
+        return ApplicationRoles.USER.equals(role) || ApplicationRoles.SUPERVISOR.equals(role);
     }
 
 }

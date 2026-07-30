@@ -8,11 +8,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.ConstraintValidatorContext;
 import java.text.ParseException;
+import java.time.LocalDate;
 
 @AllArgsConstructor
 @Controller
@@ -31,51 +30,112 @@ public class LeaveRequestController {
 
     @GetMapping("supervisor/home")
     public String allLeaves(Model model) throws ParseException {
-        model.addAttribute("allLeaves",leaveRequestService.displayAllLeaves());
+        User supervisor = currentUser();
+        String denied = supervisorDepartmentGuard(supervisor);
+        if (denied != null) {
+            return denied;
+        }
+        model.addAttribute("allLeaves", leaveRequestService.displayAllLeaves(supervisor.getDepartment()));
         return "supervisor/supervisorHome";
     }
 
     @GetMapping("supervisor/accepted-leaves")
     public String acceptedLeaves(Model model){
-        model.addAttribute("activeLeaves", leaveRequestService.getAllLeavesOnStatus(true));
+        User supervisor = currentUser();
+        String denied = supervisorDepartmentGuard(supervisor);
+        if (denied != null) {
+            return denied;
+        }
+        model.addAttribute("activeLeaves", leaveRequestService.getAllLeavesOnStatus(true, supervisor.getDepartment()));
         return "supervisor/activeLeaves";
     }
 
     @GetMapping("supervisor/rejected-leaves")
     public String rejectedLeaves(Model model){
-        model.addAttribute("rejectedLeaves", leaveRequestService.getAllLeavesOnStatus(false));
+        User supervisor = currentUser();
+        String denied = supervisorDepartmentGuard(supervisor);
+        if (denied != null) {
+            return denied;
+        }
+        model.addAttribute("rejectedLeaves", leaveRequestService.getAllLeavesOnStatus(false, supervisor.getDepartment()));
         return "supervisor/rejectedLeaves";
     }
 
     @GetMapping("supervisor/pending-leaves")
     public String pendingLeaves(Model model){
-        model.addAttribute("pendingLeaves", leaveRequestService.getAllPendingLeaves());
+        User supervisor = currentUser();
+        String denied = supervisorDepartmentGuard(supervisor);
+        if (denied != null) {
+            return denied;
+        }
+        model.addAttribute("pendingLeaves", leaveRequestService.getAllPendingLeaves(supervisor.getDepartment()));
         return "supervisor/pendingLeaves";
     }
 
     @PostMapping("supervisor/pending-leaves/confirm/{id}")
     public String confirmRequest (@PathVariable("id") Integer id){
-        leaveRequestService.confirmRejectLeave(leaveRequestService.getLeaveById(id), true, "");
+        User supervisor = currentUser();
+        String denied = supervisorDepartmentGuard(supervisor);
+        if (denied != null) {
+            return denied;
+        }
+        LeaveRequest leaveRequest = leaveRequestService.getLeaveById(id);
+        if (!leaveRequestService.isLeaveInDepartment(leaveRequest, supervisor.getDepartment())) {
+            return "redirect:/api/access-denied";
+        }
+        leaveRequestService.confirmRejectLeave(leaveRequest, true, "");
         return "supervisor/confirmed";
     }
 
     @PostMapping("supervisor/pending-leaves/reject/{id}")
     public String rejectRequest (@PathVariable("id") Integer id, @RequestParam("message") String message){
-        leaveRequestService.confirmRejectLeave(leaveRequestService.getLeaveById(id), false,  message);
+        User supervisor = currentUser();
+        String denied = supervisorDepartmentGuard(supervisor);
+        if (denied != null) {
+            return denied;
+        }
+        LeaveRequest leaveRequest = leaveRequestService.getLeaveById(id);
+        if (!leaveRequestService.isLeaveInDepartment(leaveRequest, supervisor.getDepartment())) {
+            return "redirect:/api/access-denied";
+        }
+        leaveRequestService.confirmRejectLeave(leaveRequest, false,  message);
         return "supervisor/rejected";
+    }
+
+    private User currentUser() {
+        return (User) userService.loadUserByUsername(
+                SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+
+    private String supervisorDepartmentGuard(User supervisor) {
+        if (supervisor.getDepartment() == null) {
+            return "redirect:/api/access-denied";
+        }
+        return null;
     }
 
     @RequestMapping(path = "user/new-request")
     public String newRequest(Model model){
         LeaveRequest leaveRequest = new LeaveRequest();
         model.addAttribute("leave_details", leaveRequest);
+        model.addAttribute("minDate", LocalDate.now().toString());
         return "/user/newRequest";
     }
 
     @PostMapping("user/new-request/save")
-    public String saveRequest(@ModelAttribute("leave_request") LeaveRequest leaveRequest) throws ParseException {
+    public String saveRequest(@ModelAttribute("leave_details") LeaveRequest leaveRequest, Model model) throws ParseException {
             User user = (User) userService.loadUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
-            leaveRequestService.saveLeave(leaveRequest, user);
+            try {
+                leaveRequestService.saveLeave(leaveRequest, user);
+            } catch (IllegalStateException ex) {
+                if (ex.getMessage().startsWith("You must be assigned")) {
+                    return "user/newRequestError";
+                }
+                model.addAttribute("leave_details", leaveRequest);
+                model.addAttribute("minDate", LocalDate.now().toString());
+                model.addAttribute("dateError", ex.getMessage());
+                return "/user/newRequest";
+            }
         return "user/newRequestSuccess";
     }
 }

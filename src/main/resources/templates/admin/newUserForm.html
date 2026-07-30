@@ -15,7 +15,7 @@
     <a th:href="@{/api/admin/manage-users}" class="w3-bar-item w3-button">VIEW USERS</a>
     <a th:href="@{/api/admin/add-user}" class="w3-bar-item w3-button">ADD USER</a>
     <a th:href="@{/api/change-password}" class="w3-bar-item w3-button">CHANGE PASSWORD</a>
-    <a th:href="@{/api/login}" class="w3-bar-item w3-button">LOG OUT</a>
+    <a th:href="@{/logout}" class="w3-bar-item w3-button">LOG OUT</a>
 </nav>
 
 <div class="w3-main" style="margin-left:350px; margin-right: 50px; margin-top: 50px;">
@@ -40,16 +40,30 @@
                     </div>
                     <div class="w3-section">
                         <label>Password</label>
-                        <input class="w3-input w3-border" type="text" name="Password" th:field="*{password}" required>
+                        <input class="w3-input w3-border" type="password" name="Password" th:field="*{password}" required minlength="8" autocomplete="new-password">
                         <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
                     </div>
                     <div class="w3-section">
                         <label>Role</label>
-                        <select class="w3-input" th:field="*{role}" >
-                            <option th:value="'ADMIN'" th:text="ADMIN">Admin</option>
-                            <option th:value="'SUPERVISOR'" th:text="SUPERVISOR">Supervisor</option>
-                            <option th:value="'USER'" th:text="USER">User</option>
+                        <select class="w3-input" th:field="*{role}" required>
+                            <option value="" disabled th:selected="${user.role == null}">Select role</option>
+                            <option th:each="roleOption : ${T(com.lhind.AnnualLeaveApp.security.ApplicationRoles).values()}"
+                                    th:value="${roleOption}"
+                                    th:text="${roleOption}">
+                            </option>
                         </select>
+                        <span th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></span>
+                    </div>
+                    <div class="w3-section">
+                        <label>Department</label>
+                        <select class="w3-input" th:field="*{department}" required>
+                            <option value="" disabled th:selected="${user.department == null}">Select department</option>
+                            <option th:each="dept : ${T(com.lhind.AnnualLeaveApp.model.Department).values()}"
+                                    th:value="${dept}"
+                                    th:text="${dept}">
+                            </option>
+                        </select>
+                        <span th:if="${#fields.hasErrors('department')}" th:errors="*{department}"></span>
                     </div>
                     <button type="submit" class="w3-button w3-block w3-black w3-margin-bottom">Create</button>
                 </form>

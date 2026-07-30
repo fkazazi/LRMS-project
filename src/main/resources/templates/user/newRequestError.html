@@ -31,11 +31,11 @@
   </style>
 <body class="w3-light-grey w3-content" style="max-width:1600px">
 <nav class="w3-sidebar w3-bar-block w3-white w3-animate-left w3-text-grey w3-collapse w3-top w3-center" style="z-index:3;width:300px;font-weight:bold" id="mySidebar"><br>
-  <h3 class="w3-padding-64 w3-center"><b>WELCOME<br>USER</b></h3>
+  <h3 th:replace="~{fragments/welcome :: sidebarWelcome}"></h3>
   <a th:href="@{/api/user/my-leaves}" class="w3-bar-item w3-button">MY REQUESTS</a>
   <a th:href="@{/api/user/new-request}" class="w3-bar-item w3-button">NEW LEAVE REQUEST</a>
   <a th:href="@{/api/change-password}" class="w3-bar-item w3-button">CHANGE PASSWORD</a>
-  <a th:href="@{/api/login}" class="w3-bar-item w3-button">LOG OUT</a>
+  <a th:href="@{/logout}" class="w3-bar-item w3-button">LOG OUT</a>
 </nav>
 <div class="w3-main" style="margin-left:350px; margin-right: 50px; margin-top: 50px;">
   <div class="w3-center w3-padding-32">

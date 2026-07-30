@@ -55,10 +55,10 @@
 </head>
 <body>
 <div class="container">
-    <h1>Leave Management System</h1>
-    <form class = "login" method="post">
+    <h1>Leave Requests Management System</h1>
+    <form class="login" th:action="@{/api/login}" method="post">
       <div class="username">
-        <input type="text" id="username" name="username" class="username" placeholder="Username" required >
+        <input type="text" id="username" name="username" class="username" placeholder="Email address" required autocomplete="username">
 
       </div>
       <div class="password">

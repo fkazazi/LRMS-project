@@ -22,16 +22,18 @@
   </style>
 <body class="w3-light-grey w3-content" style="max-width:1600px">
 <nav class="w3-sidebar w3-bar-block w3-white w3-animate-left w3-text-grey w3-collapse w3-top w3-center" style="z-index:3;width:300px;font-weight:bold" id="mySidebar"><br>
-  <h3 class="w3-padding-64 w3-center"><b>WELCOME<br>SUPERVISOR</b></h3>
+  <h3 th:replace="~{fragments/welcome :: sidebarWelcome}"></h3>
+    <a th:href="@{/api/supervisor/home}" class="w3-bar-item w3-button">ALL LEAVES</a>
     <a th:href="@{/api/supervisor/accepted-leaves}" class="w3-bar-item w3-button">ACCEPTED LEAVES</a>
     <a th:href="@{/api/supervisor/rejected-leaves}" class="w3-bar-item w3-button">REJECTED LEAVES</a>
     <a th:href="@{/api/supervisor/pending-leaves}" class="w3-bar-item w3-button">PENDING LEAVES</a>
     <a th:href="@{/api/change-password}" class="w3-bar-item w3-button">CHANGE PASSWORD</a>
-    <a th:href="@{/api/login}" class="w3-bar-item w3-button">LOG OUT</a>
+    <a th:href="@{/logout}" class="w3-bar-item w3-button">LOG OUT</a>
 </nav>
 
 <div class="w3-main" style="margin-left:350px; margin-right: 50px; margin-top: 50px;">
   <div class="w3-center w3-padding-32">
+    <h4><b>All leave requests (your department)</b></h4>
     <table id="table">
       <thead>
       <tr>
@@ -56,8 +58,9 @@
         <td><span th:text="${leave_details.duration}"></span> </td>
         <td><span th:text="${leave_details.reason}"></span> </td>
          <td>
-             <span th:if="${leave_details.flag}" class="label-success" style="color: white;">ACCEPTED</span>
-             <span th:if="${!leave_details.flag}" class="label-danger" style="color: white;">REJECTED</span>
+             <span th:if="${leave_details.pending}" style="color: #856404;">PENDING</span>
+             <span th:if="${!leave_details.pending and leave_details.flag}" style="color: green;">ACCEPTED</span>
+             <span th:if="${!leave_details.pending and !leave_details.flag}" style="color: red;">REJECTED</span>
          </td>
      </tr>
       </tbody>

@@ -27,7 +27,7 @@
   <a th:href="@{/api/admin/manage-users}" class="w3-bar-item w3-button">VIEW USERS</a>
   <a th:href="@{/api/admin/add-user}" class="w3-bar-item w3-button">ADD USER</a>
   <a th:href="@{/api/change-password}" class="w3-bar-item w3-button">CHANGE PASSWORD</a>
-  <a th:href="@{/api/login}" class="w3-bar-item w3-button">LOG OUT</a>
+  <a th:href="@{/logout}" class="w3-bar-item w3-button">LOG OUT</a>
 </nav>
 
 <div class="w3-main" style="margin-left:350px; margin-right: 50px; margin-top: 50px;">
@@ -40,6 +40,7 @@
         <th>Last Name</th>
         <th>Email</th>
         <th>Role</th>
+        <th>Department</th>
         <th>Actions</th>
       </tr>
       </thead>
@@ -50,6 +51,7 @@
         <td><span th:text="${user.lastName}"></span> </td>
         <td><span th:text="${user.email}"></span> </td>
         <td><span th:text="${user.role}"></span> </td>
+        <td><span th:text="${user.department} ?: '-'"></span> </td>
         <td>
           <a th:href="@{/api/admin/manage-users/delete/{id}(id=${user.id})}" class="button">Delete</a>
           <a th:href="@{/api/admin/manage-users/edit/{id}(id=${user.id})}" class="button">Edit</a>
